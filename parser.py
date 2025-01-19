@@ -41,6 +41,11 @@ def p_simple_stmt(p):
 def p_compound_stmt(p):
     """
     compound_stmt : func_declare
+                  | class_declare
+                  | constructor
+                  | when_stmt
+                  | loop_stmt
+                  | until_stmt
     """
     p[0] = p[1]
 
@@ -99,6 +104,34 @@ def p_enum_items(p):
         p[0] = p[1] + [p[3]]
 
 
+def p_array_lit(p):
+    """
+    expr : LBRACKET array_items  RBRACKET
+    """
+    p[0] = ("array_lit", p[2])
+
+
+def p_array_items(p):
+    """
+    array_items :
+                | expr
+                | expr COMMA  array_items
+    """
+    if len(p) == 1:
+        p[0] = []
+    elif len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = [p[1]] + p[3]
+
+
+def p_index(p):
+    """
+    expr : expr LBRACKET expr RBRACKET
+    """
+    p[0] = ("index", p[1], p[3])
+
+
 def p_modifier(p):
     """
     modifier : AT expr
@@ -138,6 +171,75 @@ def p_func_declare(p):
     p[0] = ("func_declare", p[1], p[2], p[4], p[7])
 
 
+def p_class_declare(p):
+    """
+    class_declare : CLASS ID COLON class_block
+    """
+    p[0] = ("class_declare", p[2], p[3])
+
+
+def p_class_block(p):
+    """class_block : stmts"""
+    p[0] = p[1]
+
+
+def p_constructor(p):
+    """
+    constructor : ID LPAR params RPAR COLON block
+    """
+    p[0] = ("constructor", p[1], p[3], p[6])
+
+
+def p_when_stmt(p):
+    """
+    when_stmt : when_blocks
+              | when_blocks default_block
+    """
+    if len(p) == 2:
+        p[0] = ("when_stmt", p[1])
+    else:
+        p[0] = ("when_stmt", p[1] + [p[2]])
+
+
+def p_when_blocks(p):
+    """
+    when_blocks : when_block
+                | when_blocks when_block
+    """
+    if len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = p[1] + [p[2]]
+
+
+def p_when_block(p):
+    """
+    when_block : WHEN expr COLON block
+    """
+    p[0] = ("when", p[2], p[4])
+
+
+def p_default_block(p):
+    """
+    default_block : DEFAULT COLON block
+    """
+    p[0] = ("when_default", p[3])
+
+
+def p_loop_stmt(p):
+    """
+    loop_stmt : LOOP declare IN expr COLON block
+    """
+    p[0] = ("loop", p[2], p[4], p[6])
+
+
+def p_until_stmt(p):
+    """
+    until_stmt : UNTIL expr COLON block
+    """
+    p[0] = ("until", p[2], p[4])
+
+
 def p_expr_func_call(p):
     """
     expr : ID LPAR args RPAR
@@ -165,12 +267,21 @@ def p_expr_unary(p):
     p[0] = ("unary", p[1], p[2])
 
 
-def p_epxr_logic_conop(p):
+def p_expr_logic_not(p):
     """
-    expr : expr DOUBLE_AMP expr
-         | expr DOUBLE_VBAR expr
+    expr : EXCLAMATION expr
     """
-    p[0] = ("logic_conop", p[2], p[1], p[3])
+    p[0] = ("logic_not", p[2])
+
+
+def p_epxr_logic_and(p):
+    """expr : expr DOUBLE_AMP expr"""
+    p[0] = ("logic_and", p[1], p[3])
+
+
+def p_epxr_logic_or(p):
+    """expr : expr DOUBLE_VBAR expr"""
+    p[0] = ("logic_or", p[1], p[3])
 
 
 def p_expr_comop(p):
