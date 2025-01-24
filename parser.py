@@ -41,11 +41,11 @@ def p_simple_stmt(p):
 def p_compound_stmt(p):
     """
     compound_stmt : func_declare
-                  | class_declare
-                  | constructor
                   | when_stmt
                   | loop_stmt
                   | until_stmt
+                  | struct
+                  | struct_constructor
     """
     p[0] = p[1]
 
@@ -132,6 +132,13 @@ def p_index(p):
     p[0] = ("index", p[1], p[3])
 
 
+def p_spread(p):
+    """
+    expr : STAR expr
+    """
+    p[0] = ("spread", p[2])
+
+
 def p_modifier(p):
     """
     modifier : AT expr
@@ -171,23 +178,22 @@ def p_func_declare(p):
     p[0] = ("func_declare", p[1], p[2], p[4], p[7])
 
 
-def p_class_declare(p):
+def p_struct(p):
     """
-    class_declare : CLASS ID COLON class_block
+    struct : STRUCT ID COLON block
+           | STRUCT ID EXTENDS ID COLON block
     """
-    p[0] = ("class_declare", p[2], p[3])
+    if len(p) == 5:
+        p[0] = ("struct", p[2], [], p[4])
+    else:
+        p[0] = ("struct", p[2], [p[4]] p[6])
 
 
-def p_class_block(p):
-    """class_block : stmts"""
-    p[0] = p[1]
-
-
-def p_constructor(p):
+def p_struct_constructor(p):
     """
-    constructor : ID LPAR params RPAR COLON block
+    struct_constructor : LPAR params RPAR COLON block
     """
-    p[0] = ("constructor", p[1], p[3], p[6])
+    p[0] = ("struct_ctor", p[2], p[5])
 
 
 def p_when_stmt(p):
@@ -341,11 +347,16 @@ def p_expr_cast(p):
     p[0] = ("cast", p[2], p[4])
 
 
+def p_expr_range(p):
+    """expr : expr DOUBLE_DOT expr"""
+    p[0] = ("range", p[1], p[3])
+
+
 def p_params(p):
     """
     params :
-           | declare
-           | params COMMA declare
+           | param
+           | params COMMA param
     """
     if len(p) == 1:
         p[0] = []
@@ -353,6 +364,14 @@ def p_params(p):
         p[0] = [p[1]]
     else:
         p[0] = p[1] + [p[3]]
+
+
+def p_param(p):
+    """
+    param : declare
+          | declare_assign
+    """
+    p[0] = p[1]
 
 
 def p_args(p):
@@ -400,6 +419,12 @@ def p_array(p):
     array : type LBRACKET RBRACKET
     """
     p[0] = ("array", p[1])
+
+#TODO Implement dict type
+def p_dict(p):
+    """
+    dict : LBRACE  RBRACE
+    """
 
 
 def p_error(p):

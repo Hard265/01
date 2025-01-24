@@ -150,3 +150,81 @@ def test_double_literals():
     code = "x = 3.14\n"
     result = parser.parse(code)
     assert result == [("assign", "x", "=", ("doublel", "3.14"))]
+
+
+def test_when_statement():
+    code = """
+    when x:
+        return 1
+    when y:
+        return 2
+    default:
+        return 3
+    """
+    result = parser.parse(normalize(code))
+    assert result == [
+        (
+            "when_stmt",
+            [
+                ("when", ("id", "x"), [("return", ("integer", "1"))]),
+                ("when", ("id", "y"), [("return", ("integer", "2"))]),
+                ("when_default", [("return", ("integer", "3"))]),
+            ],
+        )
+    ]
+
+
+def test_until_statement():
+    code = """
+    until x > 10:
+        x += 1
+    """
+    result = parser.parse(normalize(code))
+    assert result == [
+        (
+            "until",
+            ("comop", ">", ("id", "x"), ("integer", "10")),
+            [("assign", "x", "+=", ("integer", "1"))],
+        )
+    ]
+
+
+def test_loop_statement():
+    code = """
+    loop int i in 1..10:
+        x += i
+    """
+    result = parser.parse(normalize(code))
+    assert result == [
+        (
+            "loop",
+            ("declare", "int", "i"),
+            ("range", ("integer", "1"), ("integer", "10")),
+            [("assign", "x", "+=", ("id", "i"))],
+        )
+    ]
+
+
+def test_conditional_operator():
+    code = "x = condition ? value1 ! value2\n"
+    result = parser.parse(code)
+    assert result == [
+        (
+            "assign",
+            "x",
+            "=",
+            ("conop", ("id", "condition"), ("id", "value1"), ("id", "value2")),
+        )
+    ]
+
+
+def test_array_type_declaration():
+    code = """
+    int[] numbers
+    str[][] matrix
+    """
+    result = parser.parse(normalize(code))
+    assert result == [
+        ("declare", ("array", "int"), "numbers"),
+        ("declare", ("array", ("array", "str")), "matrix"),
+    ]

@@ -15,7 +15,7 @@ keywords = {
     "in": "IN",
     "break": "BREAK",
     "pass": "PASS",
-    "class": "CLASS",
+    "struct": "STRUCT",
     "void": "VOID",
 }
 
@@ -59,6 +59,7 @@ tokens = (
     "DOUBLE_STAR",
     "DOUBLE_VBAR",
     "DOUBLE_AMP",
+    "DOUBLE_DOT",
     "COLON",
     "AT",
     "EXCLAMATION",
@@ -105,6 +106,7 @@ t_MOD = r"%"
 t_DOUBLE_STAR = r"\*\*"
 t_DOUBLE_VBAR = r"\|\|"
 t_DOUBLE_AMP = r"&&"
+t_DOUBLE_DOT = r"\.\."
 
 indentation_stack = [0]
 
