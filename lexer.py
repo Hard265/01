@@ -16,6 +16,7 @@ keywords = {
     "break": "BREAK",
     "pass": "PASS",
     "struct": "STRUCT",
+    "extends": "EXTENDS",
     "void": "VOID",
 }
 
