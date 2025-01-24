@@ -186,7 +186,7 @@ def p_struct(p):
     if len(p) == 5:
         p[0] = ("struct", p[2], [], p[4])
     else:
-        p[0] = ("struct", p[2], [p[4]] p[6])
+        p[0] = ("struct", p[2], [p[4]], p[6])
 
 
 def p_struct_constructor(p):
@@ -420,7 +420,8 @@ def p_array(p):
     """
     p[0] = ("array", p[1])
 
-#TODO Implement dict type
+
+# TODO Implement dict type
 def p_dict(p):
     """
     dict : LBRACE  RBRACE
