@@ -60,6 +60,11 @@ def p_assign(p):
     p[0] = ("assign", p[1], p[2], p[3])
 
 
+def p_assign_access(p):
+    """assign : expr assign_op expr"""
+    p[0] = ("assign_access", p[1], p[2], p[3])
+
+
 def p_assign_op(p):
     """
     assign_op : EQUALS
