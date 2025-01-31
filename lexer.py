@@ -62,6 +62,7 @@ tokens = (
     "DOUBLE_AMP",
     "DOUBLE_DOT",
     "COLON",
+    "SEMICOLON",
     "AT",
     "EXCLAMATION",
     "QUESTION",
@@ -94,6 +95,7 @@ t_COMMA = r","
 t_SLASH = r"/"
 t_STAR = r"\*"
 t_COLON = r":"
+t_SEMICOLON = r";"
 t_AT = r"@"
 t_EXCLAMATION = r"!"
 t_QUESTION = r"\?"

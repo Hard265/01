@@ -421,11 +421,27 @@ def p_array(p):
     p[0] = ("array", p[1])
 
 
-# TODO Implement dict type
-def p_dict(p):
+def p_dict_lit(p):
     """
-    dict : LBRACE  RBRACE
+    dict_lit : LBRACE NEWLINE INDENT dict_items DEDENT RBRACE
     """
+    p[0] = ("dict_lit", p[4])
+
+def p_dict_items(p):
+    """
+    dict_items : dict_item NEWLINE
+               | dict_items dict_item NEWLINE
+    """
+    if len(p) == 3:
+        p[0] = [p[1]]
+    else:
+        p[0] = p[1] + [p[2]]
+
+def p_dict_item(p):
+    """
+    dict_item : ID COLON expr
+    """
+    p[0] = (p[1], p[3])
 
 
 def p_error(p):
