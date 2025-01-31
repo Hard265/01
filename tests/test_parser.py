@@ -228,3 +228,49 @@ def test_array_type_declaration():
         ("declare", ("array", "int"), "numbers"),
         ("declare", ("array", ("array", "str")), "matrix"),
     ]
+
+
+# def test_lambda_function():
+#     code = "lambda (x, y) -> x + y\n"
+#     result = parser.parse(code)
+#     assert result == [("lambda_func", [("id", "x"), ("id", "y")], ("binop", "+", ("id", "x"), ("id", "y")))]
+
+
+def test_struct_declaration():
+    code = """
+    struct Point:
+        int x
+        int y
+    """
+    result = parser.parse(normalize(code))
+    assert result == [
+        ("struct", "Point", [], [
+            ("declare", "int", "x"),
+            ("declare", "int", "y")
+        ])
+    ]
+
+
+def test_struct_constructor():
+    code = """
+    struct Point:
+        int x
+        int y
+        (int x, int y):
+            self.x = x
+            self.y = y
+    """
+    result = parser.parse(normalize(code))
+    assert result == [
+        ("struct", "Point", [], [
+            ("declare", "int", "x"),
+            ("declare", "int", "y"),
+            ("struct_ctor", [
+                ("declare", "int", "x"),
+                ("declare", "int", "y")
+            ], [
+                ("assign_access", ("access", ("id", "self"), ("id", "x")), "=", ("id", "x")),
+                ("assign_access", ("access", ("id", "self"), ("id", "y")), "=", ("id", "y"))
+            ])
+        ])
+    ]

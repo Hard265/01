@@ -174,3 +174,129 @@ class SemanticAnalyzer:
             raise SemanticError(f"Logical operators require boolean operands")
 
         raise SemanticError(f"Unknown operator: {op}")
+
+    def analyze_enum_declare(self, node):
+        _, name, items = node
+        self.symbol_table.declare(name, "enum")
+        for item in items:
+            self.symbol_table.declare(item, name)
+
+    def analyze_array_lit(self, node):
+        _, items = node
+        item_types = [self.analyze_node(item) for item in items]
+        if not all(t == item_types[0] for t in item_types):
+            raise SemanticError("Array elements must be of the same type")
+        return f"array[{item_types[0]}]"
+
+    def analyze_index(self, node):
+        _, array, index = node
+        array_type = self.analyze_node(array)
+        index_type = self.analyze_node(index)
+        if not array_type.startswith("array["):
+            raise SemanticError("Indexing is only supported on arrays")
+        if index_type != "int":
+            raise SemanticError("Array index must be an integer")
+        return array_type[6:-1]  # Return the type of the array elements
+
+    def analyze_spread(self, node):
+        _, expr = node
+        expr_type = self.analyze_node(expr)
+        if not expr_type.startswith("array["):
+            raise SemanticError("Spread operator is only supported on arrays")
+        return expr_type
+
+    def analyze_modifier(self, node):
+        _, expr = node
+        return self.analyze_node(expr)
+
+    def analyze_pass(self, node):
+        pass  # No semantic checks needed for pass statement
+
+    def analyze_when_stmt(self, node):
+        _, blocks = node
+        for block in blocks:
+            self.analyze_node(block)
+
+    def analyze_loop(self, node):
+        _, var_decl, iterable, body = node
+        self.analyze_node(var_decl)
+        iterable_type = self.analyze_node(iterable)
+        if not iterable_type.startswith("array["):
+            raise SemanticError("Loop iterable must be an array")
+        self.symbol_table.enter_scope()
+        self.analyze_node(body)
+        self.symbol_table.exit_scope()
+
+    def analyze_until(self, node):
+        _, condition, body = node
+        condition_type = self.analyze_node(condition)
+        if condition_type != "bool":
+            raise SemanticError("Until condition must be a boolean")
+        self.symbol_table.enter_scope()
+        self.analyze_node(body)
+        self.symbol_table.exit_scope()
+
+    def analyze_unary(self, node):
+        _, op, operand = node
+        operand_type = self.analyze_node(operand)
+        if op in ["++", "--"]:
+            if operand_type != "int":
+                raise SemanticError(f"Unary operator {op} requires integer operand")
+            return "int"
+        raise SemanticError(f"Unknown unary operator: {op}")
+
+    def analyze_logic_not(self, node):
+        _, expr = node
+        expr_type = self.analyze_node(expr)
+        if expr_type != "bool":
+            raise SemanticError("Logical NOT operator requires boolean operand")
+        return "bool"
+
+    def analyze_logic_and(self, node):
+        _, left, right = node
+        left_type = self.analyze_node(left)
+        right_type = self.analyze_node(right)
+        if left_type != "bool" or right_type != "bool":
+            raise SemanticError("Logical AND operator requires boolean operands")
+        return "bool"
+
+    def analyze_logic_or(self, node):
+        _, left, right = node
+        left_type = self.analyze_node(left)
+        right_type = self.analyze_node(right)
+        if left_type != "bool" or right_type != "bool":
+            raise SemanticError("Logical OR operator requires boolean operands")
+        return "bool"
+
+    def analyze_comop(self, node):
+        _, op, left, right = node
+        left_type = self.analyze_node(left)
+        right_type = self.analyze_node(right)
+        if not self.type_compatible(left_type, right_type):
+            raise SemanticError(f"Type mismatch in comparison: {left_type} {op} {right_type}")
+        return "bool"
+
+    def analyze_conop(self, node):
+        _, condition, true_expr, false_expr = node
+        condition_type = self.analyze_node(condition)
+        true_type = self.analyze_node(true_expr)
+        false_type = self.analyze_node(false_expr)
+        if condition_type != "bool":
+            raise SemanticError("Conditional operator requires boolean condition")
+        if not self.type_compatible(true_type, false_type):
+            raise SemanticError(f"Type mismatch in conditional operator: {true_type} vs {false_type}")
+        return true_type
+
+    def analyze_cast(self, node):
+        _, target_type, expr = node
+        expr_type = self.analyze_node(expr)
+        # Add casting rules here if needed
+        return target_type
+
+    def analyze_range(self, node):
+        _, start, end = node
+        start_type = self.analyze_node(start)
+        end_type = self.analyze_node(end)
+        if start_type != "int" or end_type != "int":
+            raise SemanticError("Range bounds must be integers")
+        return "range"
